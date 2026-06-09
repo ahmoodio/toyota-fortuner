@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRAIL BOSS — 2013 Toyota Fortuner</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Barlow+Condensed:wght@700;800;900&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f0ede8;
+      --accent: #c8a96e;
+      --gray: #888;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* FRAME SEQUENCE */
+    #frame-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    #vignette-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(
+        ellipse 75% 65% at 50% 60%,
+        transparent 40%,
+        rgba(10,10,10,0.35) 62%,
+        rgba(10,10,10,0.75) 82%,
+        #0a0a0a 100%
+      );
+    }
+
+    /* PROGRESS BAR */
+    .scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: var(--accent);
+      z-index: 200;
+      width: 0%;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 48px;
+    }
+
+    nav::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 180px;
+      background: linear-gradient(to bottom, rgba(10,10,10,1) 10%, rgba(10,10,10,0.8) 50%, transparent 100%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .nav-logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+      opacity: 0.9;
+      cursor: pointer;
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .nav-right a {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+
+    .nav-right a:hover { opacity: 1; }
+    .nav-right a.nav-active { opacity: 1; color: var(--accent); }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+      z-index: 200;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--white);
+      transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.25s;
+      transform-origin: center;
+    }
+
+    .hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    .nav-cta {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border: 1px solid rgba(240,237,232,0.3);
+      padding: 8px 20px;
+      color: var(--white) !important;
+      opacity: 1 !important;
+      transition: background 0.3s, border-color 0.3s !important;
+    }
+    .nav-cta:hover { background: var(--white); color: var(--black) !important; }
+
+    @media (max-width: 768px) {
+      nav { padding: 20px 24px; }
+      .hamburger { display: flex; }
+      .nav-right {
+        position: fixed;
+        top: 0; right: 0;
+        height: 100vh;
+        width: 260px;
+        background: rgba(10,10,10,0.97);
+        border-left: 1px solid rgba(240,237,232,0.08);
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 80px 40px 40px;
+        gap: 28px;
+        transform: translateX(100%);
+        transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+        z-index: 150;
+        pointer-events: none;
+      }
+      .nav-right.mobile-open { transform: translateX(0); pointer-events: all; }
+    }
+
+    /* CONTENT */
+    #content {
+      position: relative;
+      z-index: 10;
+    }
+
+    .section {
+      min-height: 110vh;
+      display: flex;
+      align-items: flex-end;
+      padding: 0 48px 80px;
+      position: relative;
+    }
+
+    #section-hero { align-items: flex-end; min-height: 100vh; }
+    #section-cta { min-height: 100vh; }
+
+    .hero-headline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(64px, 13vw, 200px);
+      line-height: 0.88;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: var(--white);
+      user-select: none;
+    }
+
+    .hero-headline .line { display: block; }
+    .hero-headline .stroke {
+      -webkit-text-stroke: 1px var(--white);
+      color: transparent;
+    }
+
+    .hero-sub {
+      position: absolute;
+      right: 48px;
+      bottom: 80px;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .hero-sub p {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray);
+      line-height: 2;
+    }
+
+    .hero-sub .year {
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--accent);
+    }
+
+    .scroll-indicator {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .scroll-indicator span {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+
+    .scroll-line {
+      width: 40px;
+      height: 1px;
+      background: linear-gradient(to left, var(--accent), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleX(1); }
+      50% { opacity: 1; transform: scaleX(1.2); }
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(24px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    nav .nav-logo { animation: fadeDown 0.7s cubic-bezier(0.16,1,0.3,1) 0.2s both; }
+    @media (min-width: 769px) { nav .nav-right { animation: fadeDown 0.7s cubic-bezier(0.16,1,0.3,1) 0.35s both; } }
+    .hero-headline .line:nth-child(1) { animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s both; }
+    .hero-headline .line:nth-child(2) { animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.72s both; }
+    .hero-sub { animation: slideInRight 0.8s cubic-bezier(0.16,1,0.3,1) 0.95s both; }
+    .scroll-indicator { animation: fadeIn 0.8s ease 1.3s both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      nav .nav-logo, nav .nav-right, .hero-headline .line, .hero-sub, .scroll-indicator { animation: none; }
+    }
+
+    /* OVERVIEW */
+    #section-overview { align-items: center; }
+    .section-tag {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+    .overview-content { max-width: 480px; }
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(40px, 6vw, 80px);
+      font-weight: 800;
+      text-transform: uppercase;
+      line-height: 0.92;
+      margin-bottom: 32px;
+    }
+    .section-body {
+      font-size: 14px;
+      line-height: 1.8;
+      color: rgba(240,237,232,0.55);
+      max-width: 380px;
+      margin-bottom: 40px;
+    }
+    .stat-row {
+      display: flex;
+      gap: 40px;
+      margin-top: 40px;
+      padding-top: 40px;
+      border-top: 1px solid rgba(240,237,232,0.08);
+    }
+    .stat { display: flex; flex-direction: column; gap: 4px; }
+    .stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 36px; font-weight: 700; color: var(--white); }
+    .stat-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray); }
+
+    /* SPECS */
+    #section-specs { align-items: center; justify-content: flex-end; }
+    .specs-content { max-width: 500px; text-align: right; }
+    .specs-list { list-style: none; margin-top: 32px; }
+    .specs-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(240,237,232,0.06);
+      gap: 40px;
+      background: rgba(6,6,6,0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 16px 20px;
+      margin-bottom: 2px;
+      border: 1px solid rgba(240,237,232,0.06);
+    }
+    .spec-name { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); }
+    .spec-val { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); }
+
+    /* FEATURES */
+    #section-features { align-items: flex-end; min-height: 100vh; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      max-width: 520px;
+      margin-top: 40px;
+    }
+    .feature-item {
+      background: rgba(6,6,6,0.72);
+      border: 1px solid rgba(240,237,232,0.06);
+      padding: 28px 24px;
+      backdrop-filter: blur(6px);
+    }
+    .feature-num { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 12px; }
+    .feature-name { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+    .feature-desc { font-size: 11px; line-height: 1.7; color: rgba(240,237,232,0.45); }
+
+    /* QUOTE */
+    #section-quote { align-items: center; justify-content: center; text-align: center; flex-direction: column; }
+    .quote-mark { font-family: 'Barlow Condensed', sans-serif; font-size: 120px; line-height: 0.6; color: var(--accent); opacity: 0.3; margin-bottom: 16px; }
+    .quote-text { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(28px, 4vw, 52px); font-weight: 700; text-transform: uppercase; line-height: 1.1; max-width: 800px; margin: 0 auto 32px; }
+    .quote-attr { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); }
+    .quote-attr strong { color: var(--accent); font-weight: 500; }
+
+    /* CTA */
+    #section-cta { align-items: flex-end; }
+    .cta-content { width: 100%; }
+    .cta-label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+    .cta-label::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+    .cta-headline { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: clamp(60px, 12vw, 160px); line-height: 0.88; text-transform: uppercase; margin-bottom: 48px; }
+    .cta-headline .stroke { -webkit-text-stroke: 1px var(--white); color: transparent; }
+    .cta-bottom { display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid rgba(240,237,232,0.1); padding-top: 32px; }
+    .cta-btn { display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--black); text-decoration: none; padding: 18px 40px; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; transition: transform 0.3s, background 0.3s; pointer-events: all; }
+    .cta-btn:hover { background: var(--white); transform: translateY(-2px); }
+    .footer-copy { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(240,237,232,0.3); text-align: right; line-height: 2; }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-progress" id="progress-bar"></div>
+
+  <!-- FRAME SEQUENCE IMAGE -->
+  <img id="frame-canvas" src="frames_tmp/frame_0001.jpg" alt="">
+  <div id="vignette-overlay"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">Fortuner / Archive</div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-right" id="nav-right">
+      <a href="#" data-nav-section="section-overview" onclick="scrollToSection('section-overview');return false;">Overview</a>
+      <a href="#" data-nav-section="section-specs" onclick="scrollToSection('section-specs');return false;">Specs</a>
+      <a href="#" data-nav-section="section-features" onclick="scrollToSection('section-features');return false;">Design</a>
+      <a href="#" data-nav-section="section-quote" onclick="scrollToSection('section-quote');return false;">Trail</a>
+      <a href="#" class="nav-cta" data-nav-section="section-cta" onclick="scrollToSection('section-cta');return false;">Enquire</a>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <section class="section" id="section-hero">
+      <div>
+        <h1 class="hero-headline">
+          <span class="line">TOYOTA</span>
+          <span class="line"><span class="stroke">FOR</span>TUNER</span>
+        </h1>
+      </div>
+      <div class="hero-sub">
+        <p class="year">2013 — 5th Generation</p>
+        <p>Trail Dominator</p>
+        <p>4.0L V6</p>
+        <div class="scroll-indicator">
+          <div class="scroll-line"></div>
+          <span>Scroll</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-overview">
+      <div class="overview-content">
+        <div class="section-tag">Overview</div>
+        <h2 class="section-title">Born to<br>Conquer</h2>
+        <p class="section-body">
+          The 2013 Toyota Fortuner — the last of the body-on-frame warriors. A rugged, no-compromise SUV built to outlast and outperform anything on the trail.
+        </p>
+        <div class="stat-row">
+          <div class="stat"><span class="stat-val">270</span><span class="stat-label">Horsepower</span></div>
+          <div class="stat"><span class="stat-val">7.0s</span><span class="stat-label">0–60 mph</span></div>
+          <div class="stat"><span class="stat-val">5000</span><span class="stat-label">Tow lbs</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-specs">
+      <div class="specs-content">
+        <div class="section-tag" style="justify-content: flex-end;">Technical</div>
+        <h2 class="section-title">Specs &<br>Numbers</h2>
+        <ul class="specs-list">
+          <li><span class="spec-name">Engine</span><span class="spec-val">4.0L V6</span></li>
+          <li><span class="spec-name">Displacement</span><span class="spec-val">3956 cc</span></li>
+          <li><span class="spec-name">Torque</span><span class="spec-val">278 lb-ft</span></li>
+          <li><span class="spec-name">Transmission</span><span class="spec-val">5-Speed Auto</span></li>
+          <li><span class="spec-name">Curb Weight</span><span class="spec-val">4625 lbs</span></li>
+          <li><span class="spec-name">Transfer Case</span><span class="spec-val">Part-Time 4WD</span></li>
+          <li><span class="spec-name">Ground Clearance</span><span class="spec-val">9.6 in</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="section-features">
+      <div>
+        <div class="section-tag">Design</div>
+        <h2 class="section-title">Iconic<br>Details</h2>
+        <div class="features-grid">
+          <div class="feature-item">
+            <div class="feature-num">01</div>
+            <div class="feature-name">Trail Ready</div>
+            <div class="feature-desc">Body-on-frame construction with skid plates and underbody protection built for the roughest terrain.</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">02</div>
+            <div class="feature-name">Crawl Control</div>
+            <div class="feature-desc">Low-speed cruise control for steep descents. Set it and let the truck do the work.</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">03</div>
+            <div class="feature-name">Multi-Terrain</div>
+            <div class="feature-desc">Selectable traction modes for mud, sand, rock, and snow. One dial adapts the whole drivetrain.</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">04</div>
+            <div class="feature-name">KDSS</div>
+            <div class="feature-desc">Kinetic Dynamic Suspension System disconnects sway bars for max articulation on uneven ground.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-quote">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">The mountain doesn't care about your comfort — but the Fortuner does</p>
+      <p class="quote-attr"><strong>Trail Boss Archive</strong> — Editorial, 2013</p>
+    </section>
+
+    <section class="section" id="section-cta">
+      <div class="cta-content">
+        <p class="cta-label">Own the Trail</p>
+        <h2 class="cta-headline">
+          <span class="line">Acquire</span>
+          <span class="line stroke">Yours</span>
+        </h2>
+        <div class="cta-bottom">
+          <a href="#" class="cta-btn">
+            Begin Enquiry
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <div class="footer-copy">
+            <p>Trail Boss Archive</p>
+            <p>All rights reserved</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const TOTAL_FRAMES = 184;
+    const frameImg = document.getElementById('frame-canvas');
+    const progressBar = document.getElementById('progress-bar');
+    const navLinks = document.querySelectorAll('[data-nav-section]');
+    const sectionIds = ['section-hero','section-overview','section-specs','section-features','section-quote','section-cta'];
+
+    // Preload all frames
+    const frames = [];
+    let loadedCount = 0;
+
+    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+      const img = new Image();
+      const num = String(i).padStart(4, '0');
+      img.src = 'frames_tmp/frame_' + num + '.jpg';
+      frames.push(img);
+      img.onload = () => {
+        loadedCount++;
+        if (loadedCount === 1) frameImg.src = img.src;
+      };
+    }
+
+    window.scrollToSection = function(id) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('nav-right').classList.remove('mobile-open');
+      document.getElementById('hamburger').classList.remove('open');
+    };
+
+    document.getElementById('hamburger').addEventListener('click', () => {
+      document.getElementById('nav-right').classList.toggle('mobile-open');
+      document.getElementById('hamburger').classList.toggle('open');
+    });
+
+    function updateNavHighlight() {
+      const mid = window.innerHeight * 0.45;
+      let current = sectionIds[0];
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= mid) current = id;
+      }
+      navLinks.forEach(a => a.classList.toggle('nav-active', a.dataset.navSection === current));
+    }
+
+    let currentFrameIdx = 0;
+
+    window.addEventListener('scroll', () => {
+      const totalHeight = document.body.scrollHeight - window.innerHeight;
+      if (totalHeight <= 0) return;
+      const scrollFrac = Math.min(Math.max(window.scrollY / totalHeight, 0), 1);
+      progressBar.style.width = (scrollFrac * 100) + '%';
+
+      const frameIdx = Math.round(scrollFrac * (TOTAL_FRAMES - 1));
+      if (frameIdx !== currentFrameIdx && frames[frameIdx]?.complete) {
+        currentFrameIdx = frameIdx;
+        frameImg.src = frames[frameIdx].src;
+      }
+
+      updateNavHighlight();
+    }, { passive: true });
+
+    updateNavHighlight();
+  </script>
+
+</body>
+</html>
