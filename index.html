@@ -8,7 +8,10 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Barlow+Condensed:wght@700;800;900&display=swap');
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html.lenis, html.lenis body { height: auto; }
+    .lenis.lenis-smooth { scroll-behavior: auto !important; }
+    .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+    .lenis.lenis-stopped { overflow: hidden; }
 
     :root {
       --black: #0a0a0a;
@@ -30,8 +33,11 @@
       top: 0; left: 0;
       width: 100vw;
       height: 100vh;
-      object-fit: cover;
       z-index: 0;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
 
     #vignette-overlay {
@@ -386,8 +392,8 @@
 
   <div class="scroll-progress" id="progress-bar"></div>
 
-  <!-- FRAME SEQUENCE IMAGE -->
-  <img id="frame-canvas" src="frames_tmp/frame_0001.jpg" alt="">
+  <!-- FRAME SEQUENCE CANVAS -->
+  <canvas id="frame-canvas"></canvas>
   <div id="vignette-overlay"></div>
 
   <!-- NAV -->
@@ -516,14 +522,22 @@
 
   </div>
 
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
   <script>
     const TOTAL_FRAMES = 184;
-    const frameImg = document.getElementById('frame-canvas');
+    const canvas = document.getElementById('frame-canvas');
+    const ctx = canvas.getContext('2d');
     const progressBar = document.getElementById('progress-bar');
     const navLinks = document.querySelectorAll('[data-nav-section]');
     const sectionIds = ['section-hero','section-overview','section-specs','section-features','section-quote','section-cta'];
 
-    // Preload all frames
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      renderFrame(Math.round(currentFrame));
+    }
+    window.addEventListener('resize', resizeCanvas);
+
     const frames = [];
     let loadedCount = 0;
 
@@ -534,12 +548,75 @@
       frames.push(img);
       img.onload = () => {
         loadedCount++;
-        if (loadedCount === 1) frameImg.src = img.src;
+        if (loadedCount === 1) resizeCanvas();
       };
     }
 
+    function renderFrame(index) {
+      const img = frames[index];
+      if (!img || !img.complete) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const imgRatio = img.width / img.height;
+      const canvasRatio = canvas.width / canvas.height;
+      let cx, cy, cw, ch;
+
+      if (canvasRatio > imgRatio) {
+        cw = canvas.width;
+        ch = canvas.width / imgRatio;
+        cx = 0;
+        cy = (canvas.height - ch) / 2;
+      } else {
+        ch = canvas.height;
+        cw = canvas.height * imgRatio;
+        cx = (canvas.width - cw) / 2;
+        cy = 0;
+      }
+
+      ctx.drawImage(img, cx, cy, cw, ch);
+    }
+
+    const lenis = new Lenis({
+      duration: 1.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 0.9,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    let targetFrame = 0;
+    let currentFrame = 0;
+
+    lenis.on('scroll', (e) => {
+      const totalHeight = document.body.scrollHeight - window.innerHeight;
+      if (totalHeight <= 0) return;
+
+      const scrollFrac = Math.min(Math.max(e.scroll / totalHeight, 0), 1);
+      progressBar.style.width = (scrollFrac * 100) + '%';
+
+      targetFrame = scrollFrac * (TOTAL_FRAMES - 1);
+    });
+
+    function updateAnimation() {
+      currentFrame = currentFrame + (targetFrame - currentFrame) * 0.2;
+      renderFrame(Math.round(currentFrame));
+      updateNavHighlight();
+      requestAnimationFrame(updateAnimation);
+    }
+    requestAnimationFrame(updateAnimation);
+
     window.scrollToSection = function(id) {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      const el = document.getElementById(id);
+      if (!el) return;
+      lenis.scrollTo(el, { duration: 1.5 });
       document.getElementById('nav-right').classList.remove('mobile-open');
       document.getElementById('hamburger').classList.remove('open');
     };
@@ -558,23 +635,6 @@
       }
       navLinks.forEach(a => a.classList.toggle('nav-active', a.dataset.navSection === current));
     }
-
-    let currentFrameIdx = 0;
-
-    window.addEventListener('scroll', () => {
-      const totalHeight = document.body.scrollHeight - window.innerHeight;
-      if (totalHeight <= 0) return;
-      const scrollFrac = Math.min(Math.max(window.scrollY / totalHeight, 0), 1);
-      progressBar.style.width = (scrollFrac * 100) + '%';
-
-      const frameIdx = Math.round(scrollFrac * (TOTAL_FRAMES - 1));
-      if (frameIdx !== currentFrameIdx && frames[frameIdx]?.complete) {
-        currentFrameIdx = frameIdx;
-        frameImg.src = frames[frameIdx].src;
-      }
-
-      updateNavHighlight();
-    }, { passive: true });
 
     updateNavHighlight();
   </script>
