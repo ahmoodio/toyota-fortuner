@@ -1260,46 +1260,6 @@
       }
     }
 
-    /* SOUND TOGGLE */
-    .sound-toggle {
-      position: fixed;
-      bottom: 40px;
-      right: 48px;
-      z-index: 100;
-      background: rgba(10, 10, 10, 0.5);
-      border: 1px solid rgba(240, 237, 232, 0.1);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: border-color 0.3s, background 0.3s;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      color: var(--gray);
-    }
-    .sound-toggle:hover {
-      border-color: rgba(200, 169, 110, 0.4);
-      color: var(--accent);
-    }
-    .sound-toggle.active {
-      border-color: rgba(200, 169, 110, 0.4);
-      color: var(--accent);
-    }
-    .sound-toggle svg {
-      width: 16px;
-      height: 16px;
-    }
-    .sound-toggle .sound-off { display: block; }
-    .sound-toggle .sound-on { display: none; }
-    .sound-toggle.active .sound-off { display: none; }
-    .sound-toggle.active .sound-on { display: block; }
-    @media (max-width: 768px) {
-      .sound-toggle { bottom: 20px; right: 24px; width: 36px; height: 36px; }
-    }
-
     /* SECTION PARALLAX */
     .section[data-parallax] {
       will-change: transform;
@@ -1454,19 +1414,6 @@
   <!-- HUD SCANLINES -->
   <div class="hud-overlay-lines"></div>
   <div class="hud-scanline"></div>
-
-  <!-- SOUND TOGGLE -->
-  <button class="sound-toggle" id="sound-toggle" aria-label="Toggle scroll sound">
-    <svg class="sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-      <line x1="23" y1="9" x2="17" y2="15"></line>
-      <line x1="17" y1="9" x2="23" y2="15"></line>
-    </svg>
-    <svg class="sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-    </svg>
-  </button>
 
   <!-- CUSTOM CURSOR -->
   <div id="custom-cursor" class="custom-cursor"></div>
@@ -2244,39 +2191,6 @@
       setTimeout(() => { if (scrollInd) { scrollInd.classList.remove('entry-hidden'); scrollInd.classList.add('entry-reveal'); } }, 900);
     }
 
-    // ── SOUND TOGGLE ─────────────────────────────────────────
-    const soundToggle = document.getElementById('sound-toggle');
-    let soundEnabled = false;
-    let audioCtx = null;
-
-    function createScrollSound() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(80 + Math.random() * 40, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08);
-      gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.08);
-    }
-
-    if (soundToggle) {
-      soundToggle.addEventListener('click', () => {
-        soundEnabled = !soundEnabled;
-        soundToggle.classList.toggle('active', soundEnabled);
-        if (soundEnabled && !audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-      });
-    }
-
-    let lastScrollY = 0;
-    let scrollSoundThrottle = 0;
-
     // ── GALLERY ──────────────────────────────────────────────
     const galleryTrack = document.getElementById('gallery-track');
     const galleryPrev = document.getElementById('gallery-prev');
@@ -2333,15 +2247,6 @@
     // ── UNIFIED SCROLL HANDLER ───────────────────────────────
     lenis.on('scroll', (e) => {
       updateParallax();
-
-      if (soundEnabled && Math.abs(e.scroll - lastScrollY) > 15) {
-        const now = Date.now();
-        if (now - scrollSoundThrottle > 80) {
-          createScrollSound();
-          scrollSoundThrottle = now;
-        }
-        lastScrollY = e.scroll;
-      }
     });
 
     // ── INIT ─────────────────────────────────────────────────
