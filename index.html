@@ -27,17 +27,58 @@
       overflow-x: hidden;
     }
 
+    /* LOADER */
+    #loader {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: var(--black);
+      z-index: 999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.5s ease, pointer-events 0.5s ease;
+    }
+    #loader.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loader-spinner {
+      width: 32px; height: 32px;
+      border: 2px solid rgba(240,237,232,0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     /* FRAME SEQUENCE */
     #frame-canvas {
       position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       z-index: 0;
       image-rendering: -webkit-optimize-contrast;
       image-rendering: crisp-edges;
-      transform: translate3d(0, 0, 0);
       will-change: transform;
+    }
+
+    @media (min-width: 769px) {
+      #frame-canvas {
+        width: 85vw;
+        height: 85vh;
+        border-radius: 8px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #frame-canvas {
+        width: 100vw;
+        height: 100vh;
+      }
     }
 
     #vignette-overlay {
@@ -159,6 +200,7 @@
         position: fixed;
         top: 0; right: 0;
         height: 100vh;
+        height: 100dvh;
         width: 260px;
         background: rgba(10,10,10,0.97);
         border-left: 1px solid rgba(240,237,232,0.08);
@@ -183,14 +225,15 @@
 
     .section {
       min-height: 110vh;
+      min-height: 100dvh;
       display: flex;
       align-items: flex-end;
       padding: 0 48px 80px;
       position: relative;
     }
 
-    #section-hero { align-items: flex-end; min-height: 100vh; }
-    #section-cta { min-height: 100vh; }
+    #section-hero { align-items: flex-end; min-height: 100vh; min-height: 100dvh; }
+    #section-cta { min-height: 100vh; min-height: 100dvh; }
 
     .hero-headline {
       font-family: 'Barlow Condensed', sans-serif;
@@ -386,11 +429,65 @@
     .cta-btn { display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--black); text-decoration: none; padding: 18px 40px; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; transition: transform 0.3s, background 0.3s; pointer-events: all; }
     .cta-btn:hover { background: var(--white); transform: translateY(-2px); }
     .footer-copy { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(240,237,232,0.3); text-align: right; line-height: 2; }
+
+    @media (max-width: 768px) {
+      .section {
+        min-height: 100dvh;
+        padding: 0 24px 40px;
+        display: flex;
+        align-items: flex-end;
+      }
+      .hero-headline {
+        font-size: clamp(48px, 10vw, 90px);
+        line-height: 0.95;
+      }
+      .hero-sub {
+        right: 24px;
+        bottom: 40px;
+      }
+      .overview-content {
+        background: rgba(10, 10, 10, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 24px;
+        border-radius: 4px;
+        border: 1px solid rgba(240, 237, 232, 0.05);
+        width: 100%;
+        max-width: 100%;
+      }
+      .stat-row {
+        margin-top: 20px;
+        padding-top: 20px;
+        gap: 20px;
+        justify-content: space-between;
+      }
+      .stat-val {
+        font-size: 28px;
+      }
+      .specs-content {
+        width: 100%;
+        text-align: left !important;
+      }
+      #section-specs .section-tag {
+        justify-content: flex-start !important;
+      }
+      .specs-list li {
+        padding: 12px 14px;
+      }
+      .spec-val {
+        font-size: 18px;
+      }
+    }
   </style>
 </head>
 <body>
 
   <div class="scroll-progress" id="progress-bar"></div>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div class="loader-spinner"></div>
+  </div>
 
   <!-- FRAME SEQUENCE CANVAS -->
   <canvas id="frame-canvas"></canvas>
@@ -531,34 +628,58 @@
     const navLinks = document.querySelectorAll('[data-nav-section]');
     const sectionIds = ['section-hero','section-overview','section-specs','section-features','section-quote','section-cta'];
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      renderFrame(Math.round(currentFrame));
-    }
-    window.addEventListener('resize', resizeCanvas);
+    const isMobile = window.innerWidth <= 768;
+    const frameFolder = isMobile ? 'frames_mobile' : 'frames_tmp';
 
     const frames = [];
     let loadedCount = 0;
+    let targetFrame = 0;
+    let currentFrame = 0;
+    let lastRenderedFrame = -1;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      renderFrame(Math.round(currentFrame), true);
+    }
+    window.addEventListener('resize', resizeCanvas);
 
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
       const num = String(i).padStart(4, '0');
-      img.src = 'frames_tmp/frame_' + num + '.jpg';
+      img.src = `${frameFolder}/frame_${num}.jpg`;
       frames.push(img);
       img.onload = () => {
         loadedCount++;
         if (loadedCount === 1) resizeCanvas();
+        if (loadedCount === 45) {
+          document.getElementById('loader').classList.add('fade-out');
+        }
       };
     }
 
-    function renderFrame(index) {
+    function renderFrame(index, forceRedraw = false) {
+      if (index === lastRenderedFrame && !forceRedraw) return;
+
       const img = frames[index];
-      if (!img || !img.complete) return;
+      let activeImg = null;
+
+      if (img && img.complete) {
+        activeImg = img;
+      } else {
+        for (let fallbackIdx = index; fallbackIdx >= 0; fallbackIdx--) {
+          if (frames[fallbackIdx] && frames[fallbackIdx].complete) {
+            activeImg = frames[fallbackIdx];
+            break;
+          }
+        }
+      }
+
+      if (!activeImg) return;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const imgRatio = img.width / img.height;
+      const imgRatio = activeImg.width / activeImg.height;
       const canvasRatio = canvas.width / canvas.height;
       let cx, cy, cw, ch;
 
@@ -570,20 +691,22 @@
       } else {
         ch = canvas.height;
         cw = canvas.height * imgRatio;
-        cx = (canvas.width - cw) / 2;
+        cx = isMobile ? (canvas.width - cw) * 0.65 : (canvas.width - cw) / 2;
         cy = 0;
       }
 
-      ctx.drawImage(img, cx, cy, cw, ch);
+      ctx.drawImage(activeImg, cx, cy, cw, ch);
+      lastRenderedFrame = index;
     }
 
     const lenis = new Lenis({
-      duration: 1.4,
+      duration: isMobile ? 1.0 : 1.4,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 0.9,
+      touchMultiplier: 1.5,
     });
 
     function raf(time) {
@@ -591,9 +714,6 @@
       requestAnimationFrame(raf);
     }
     requestAnimationFrame(raf);
-
-    let targetFrame = 0;
-    let currentFrame = 0;
 
     lenis.on('scroll', (e) => {
       const totalHeight = document.body.scrollHeight - window.innerHeight;
@@ -603,12 +723,12 @@
       progressBar.style.width = (scrollFrac * 100) + '%';
 
       targetFrame = scrollFrac * (TOTAL_FRAMES - 1);
+      updateNavHighlight();
     });
 
     function updateAnimation() {
       currentFrame = currentFrame + (targetFrame - currentFrame) * 0.2;
       renderFrame(Math.round(currentFrame));
-      updateNavHighlight();
       requestAnimationFrame(updateAnimation);
     }
     requestAnimationFrame(updateAnimation);
