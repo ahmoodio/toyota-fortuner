@@ -71,6 +71,7 @@
         width: 85vw;
         height: 85vh;
         border-radius: 8px;
+        box-shadow: inset 0px 40px 100px #0a0a0a, inset 0px -40px 100px #0a0a0a;
       }
     }
 
@@ -87,13 +88,19 @@
       width: 100%; height: 100%;
       z-index: 1;
       pointer-events: none;
-      background: radial-gradient(
-        ellipse 75% 65% at 50% 60%,
-        transparent 40%,
-        rgba(10,10,10,0.35) 62%,
-        rgba(10,10,10,0.75) 82%,
-        #0a0a0a 100%
-      );
+      background: 
+        linear-gradient(to bottom, 
+          #0a0a0a 0%, 
+          rgba(10, 10, 10, 0.8) 12%, 
+          rgba(10, 10, 10, 0) 35%
+        ),
+        radial-gradient(
+          ellipse 75% 65% at 50% 60%,
+          transparent 40%,
+          rgba(10,10,10,0.35) 62%,
+          rgba(10,10,10,0.75) 82%,
+          #0a0a0a 100%
+        );
     }
 
     /* PROGRESS BAR */
