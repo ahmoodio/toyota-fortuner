@@ -4,8 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TRAIL BOSS — 2013 Toyota Fortuner</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta property="og:title" content="TRAIL BOSS — 2013 Toyota Fortuner">
+  <meta property="og:description" content="An immersive scroll-driven experience showcasing the 2013 Toyota Fortuner. Body-on-frame legend.">
+  <meta property="og:image" content="frames_tmp/frame_0090.jpg">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TRAIL BOSS — 2013 Toyota Fortuner">
+  <meta name="twitter:description" content="An immersive scroll-driven experience showcasing the 2013 Toyota Fortuner.">
+  <meta name="twitter:image" content="frames_tmp/frame_0090.jpg">
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Barlow+Condensed:wght@700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Barlow+Condensed:wght@700;800;900&display=swap');
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html.lenis, html.lenis body { height: auto; }
@@ -14,10 +24,13 @@
     .lenis.lenis-stopped { overflow: hidden; }
 
     :root {
-      --black: #0a0a0a;
+      --black: #060606;
+      --black-card: rgba(10, 10, 10, 0.55);
       --white: #f0ede8;
       --accent: #c8a96e;
-      --gray: #888;
+      --accent-rgb: 200, 169, 110;
+      --gray: #8c8984;
+      --border-rgba: rgba(240, 237, 232, 0.06);
     }
 
     body {
@@ -27,31 +40,173 @@
       overflow-x: hidden;
     }
 
-    /* LOADER */
+    body.loading-active {
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* CUSTOM SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #060606;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(200, 169, 110, 0.25);
+      border-radius: 4px;
+      border: 2px solid #060606;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(200, 169, 110, 0.55);
+    }
+
+    /* CUSTOM CURSOR */
+    .custom-cursor {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 9999;
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s;
+      mix-blend-mode: normal;
+    }
+    .custom-cursor-dot {
+      width: 5px;
+      height: 5px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .custom-cursor.hovered {
+      width: 50px;
+      height: 50px;
+      background-color: rgba(200, 169, 110, 0.15);
+      border-color: var(--white);
+    }
+
+    /* HUD OVERLAYS */
+    .hud-overlay-lines {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-image: radial-gradient(rgba(200, 169, 110, 0.015) 1px, transparent 1px);
+      background-size: 32px 32px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    
+    .hud-scanline {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 6px;
+      background: linear-gradient(to bottom, rgba(200, 169, 110, 0.03), transparent);
+      z-index: 3;
+      pointer-events: none;
+      animation: scan 10s linear infinite;
+    }
+    
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+
+    /* NEW HUD PRELOADER */
     #loader {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: var(--black);
-      z-index: 999;
+      background: #060606;
+      z-index: 9999;
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: opacity 0.5s ease, pointer-events 0.5s ease;
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), pointer-events 0.8s;
     }
     #loader.fade-out {
       opacity: 0;
       pointer-events: none;
     }
-    .loader-spinner {
-      width: 32px; height: 32px;
-      border: 2px solid rgba(240,237,232,0.1);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .loader-content {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 320px;
+      width: 100%;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .loader-logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 0.35em;
+      color: var(--white);
+      margin-bottom: 28px;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+    .loader-hud-container {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      margin-bottom: 24px;
+    }
+    .loader-circle-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .circle-bg {
+      fill: none;
+      stroke: rgba(240, 237, 232, 0.03);
+      stroke-width: 3;
+    }
+    .circle-progress {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 282.7;
+      stroke-dashoffset: 282.7;
+      transition: stroke-dashoffset 0.15s ease-out;
+    }
+    .loader-percentage {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.05em;
+    }
+    .loader-status {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    .loader-terminal {
+      width: 100%;
+      height: 80px;
+      background: rgba(8, 8, 8, 0.9);
+      border: 1px solid rgba(240, 237, 232, 0.05);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: monospace;
+      font-size: 8px;
+      color: rgba(240, 237, 232, 0.4);
+      text-align: left;
+      overflow-y: hidden;
+      line-height: 1.6;
     }
 
     /* FRAME SEQUENCE */
@@ -89,16 +244,16 @@
       pointer-events: none;
       background: 
         linear-gradient(to bottom, 
-          #0a0a0a 0%, 
-          rgba(10, 10, 10, 0.8) 12%, 
-          rgba(10, 10, 10, 0) 35%
+          #060606 0%, 
+          rgba(6, 6, 6, 0.8) 12%, 
+          rgba(6, 6, 6, 0) 35%
         ),
         radial-gradient(
           ellipse 75% 65% at 50% 60%,
           transparent 40%,
-          rgba(10,10,10,0.35) 62%,
-          rgba(10,10,10,0.75) 82%,
-          #0a0a0a 100%
+          rgba(6,6,6,0.35) 62%,
+          rgba(6,6,6,0.75) 82%,
+          #060606 100%
         );
     }
 
@@ -106,10 +261,11 @@
     .scroll-progress {
       position: fixed;
       top: 0; left: 0;
-      height: 2px;
-      background: var(--accent);
-      z-index: 200;
+      height: 3px;
+      background: linear-gradient(to right, var(--accent), #e5c58b);
+      z-index: 2000;
       width: 0%;
+      box-shadow: 0 0 10px rgba(200, 169, 110, 0.4);
     }
 
     /* NAV */
@@ -128,7 +284,7 @@
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 180px;
-      background: linear-gradient(to bottom, rgba(10,10,10,1) 10%, rgba(10,10,10,0.8) 50%, transparent 100%);
+      background: linear-gradient(to bottom, rgba(6,6,6,1) 10%, rgba(6,6,6,0.8) 50%, transparent 100%);
       z-index: -1;
       pointer-events: none;
     }
@@ -157,7 +313,23 @@
       color: var(--white);
       text-decoration: none;
       opacity: 0.6;
+      position: relative;
+      padding: 6px 0;
       transition: opacity 0.3s;
+    }
+    .nav-right a::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%;
+      width: 0;
+      height: 1px;
+      background-color: var(--accent);
+      transition: width 0.3s ease, left 0.3s ease;
+    }
+    .nav-right a:hover::after,
+    .nav-right a.nav-active::after {
+      width: 100%;
+      left: 0;
     }
 
     .nav-right a:hover { opacity: 1; }
@@ -168,10 +340,15 @@
       flex-direction: column;
       gap: 5px;
       cursor: pointer;
-      padding: 4px;
-      background: none;
-      border: none;
-      z-index: 200;
+      padding: 8px;
+      background: rgba(240, 237, 232, 0.05);
+      border: 1px solid rgba(240, 237, 232, 0.1);
+      border-radius: 4px;
+      z-index: 2000;
+      transition: background 0.3s;
+    }
+    .hamburger:hover {
+      background: rgba(240, 237, 232, 0.1);
     }
 
     .hamburger span {
@@ -191,13 +368,13 @@
       font-size: 11px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      border: 1px solid rgba(240,237,232,0.3);
+      border: 1px solid rgba(200, 169, 110, 0.4);
       padding: 8px 20px;
       color: var(--white) !important;
       opacity: 1 !important;
-      transition: background 0.3s, border-color 0.3s !important;
+      transition: background 0.3s, border-color 0.3s, color 0.3s !important;
     }
-    .nav-cta:hover { background: var(--white); color: var(--black) !important; }
+    .nav-cta:hover { background: var(--accent); color: var(--black) !important; border-color: var(--accent); }
 
     @media (max-width: 768px) {
       nav { padding: 20px 24px; }
@@ -207,20 +384,97 @@
         top: 0; right: 0;
         height: 100vh;
         height: 100dvh;
-        width: 260px;
-        background: rgba(10,10,10,0.97);
-        border-left: 1px solid rgba(240,237,232,0.08);
+        width: 100%;
+        max-width: 300px;
+        background: rgba(6,6,6,0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-left: 1px solid rgba(240,237,232,0.06);
         flex-direction: column;
         justify-content: center;
-        align-items: flex-start;
-        padding: 80px 40px 40px;
-        gap: 28px;
+        align-items: center;
+        padding: 80px 40px;
+        gap: 32px;
         transform: translateX(100%);
-        transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
-        z-index: 150;
+        transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+        z-index: 1500;
         pointer-events: none;
       }
       .nav-right.mobile-open { transform: translateX(0); pointer-events: all; }
+      .nav-right a {
+        font-size: 16px;
+      }
+      .nav-cta {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    /* VERTICAL DOT NAVIGATION */
+    .dot-nav {
+      position: fixed;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .dot-nav-item {
+      width: 8px;
+      height: 8px;
+      background: rgba(240, 237, 232, 0.2);
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .dot-nav-item::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px; height: 20px;
+      border: 1px solid transparent;
+      border-radius: 50%;
+      transition: border-color 0.3s;
+    }
+    .dot-nav-item:hover::before,
+    .dot-nav-item.active::before {
+      border-color: var(--accent);
+    }
+    .dot-nav-item.active {
+      background: var(--accent);
+      transform: scale(1.25);
+    }
+    .dot-nav-item span {
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%) translateX(10px);
+      opacity: 0;
+      pointer-events: none;
+      color: var(--white);
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: opacity 0.3s, transform 0.3s;
+      background: rgba(6, 6, 6, 0.85);
+      backdrop-filter: blur(4px);
+      padding: 4px 10px;
+      border: 1px solid rgba(240, 237, 232, 0.05);
+      border-radius: 2px;
+    }
+    .dot-nav-item:hover span {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+    @media (max-width: 991px) {
+      .dot-nav {
+        display: none;
+      }
     }
 
     /* CONTENT */
@@ -350,7 +604,7 @@
       gap: 12px;
     }
     .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
-    .overview-content { max-width: 480px; }
+    .overview-content { max-width: 500px; }
     .section-title {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: clamp(40px, 6vw, 80px);
@@ -363,65 +617,326 @@
       font-size: 14px;
       line-height: 1.8;
       color: rgba(240,237,232,0.55);
-      max-width: 380px;
+      max-width: 400px;
       margin-bottom: 40px;
     }
+    
+    /* NEW STATS STYLING */
     .stat-row {
       display: flex;
-      gap: 40px;
+      flex-direction: column;
+      gap: 12px;
       margin-top: 40px;
       padding-top: 40px;
       border-top: 1px solid rgba(240,237,232,0.08);
+      max-width: 420px;
     }
-    .stat { display: flex; flex-direction: column; gap: 4px; }
-    .stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 36px; font-weight: 700; color: var(--white); }
-    .stat-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray); }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: rgba(10, 10, 10, 0.45);
+      border: 1px solid rgba(240, 237, 232, 0.05);
+      padding: 16px 20px;
+      border-radius: 4px;
+      backdrop-filter: blur(8px);
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .stat:hover {
+      transform: translateY(-2px);
+      border-color: rgba(200, 169, 110, 0.3);
+    }
+    .stat-circle {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      flex-shrink: 0;
+    }
+    .stat-circle-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .stat-bg {
+      fill: none;
+      stroke: rgba(240, 237, 232, 0.04);
+      stroke-width: 4;
+    }
+    .stat-progress-circle {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 226.2;
+      stroke-dashoffset: 226.2;
+    }
+    .stat-icon-wrapper {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stat-icon-wrapper svg {
+      width: 16px;
+      height: 16px;
+    }
+    .stat-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .stat-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.1;
+    }
+    .stat-label {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
 
     /* SPECS */
-    #section-specs { align-items: center; justify-content: flex-end; }
-    .specs-content { max-width: 500px; text-align: right; }
-    .specs-list { list-style: none; margin-top: 32px; }
+    #section-specs { align-items: center; justify-content: center; }
+    
+    .specs-grid-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 64px;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      align-items: center;
+    }
+    .specs-visual-column {
+      position: relative;
+      width: 100%;
+    }
+    .blueprint-frame {
+      position: relative;
+      border: 1px solid rgba(240, 237, 232, 0.06);
+      background: rgba(6, 6, 6, 0.6);
+      padding: 16px;
+      border-radius: 4px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+    .specs-blueprint-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 2px;
+      filter: brightness(0.9) contrast(1.05);
+      mix-blend-mode: lighten;
+    }
+    .frame-corner {
+      position: absolute;
+      width: 12px; height: 12px;
+      border: 1px solid var(--accent);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .frame-corner.top-left { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+    .frame-corner.top-right { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+    .frame-corner.bottom-left { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+    .frame-corner.bottom-right { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+    .blueprint-hud-overlay {
+      position: absolute;
+      bottom: 20px; left: 24px; right: 24px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .hud-coordinate {
+      font-family: monospace;
+      font-size: 8px;
+      color: rgba(200, 169, 110, 0.6);
+      letter-spacing: 0.1em;
+    }
+    .hud-radar-sweep {
+      position: absolute;
+      top: -100px; left: -100px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(200, 169, 110, 0.03) 0%, transparent 70%);
+      pointer-events: none;
+      animation: radarSweep 6s ease-in-out infinite;
+    }
+    @keyframes radarSweep {
+      0%, 100% { transform: translate(-30%, -30%) scale(0.8); opacity: 0.3; }
+      50% { transform: translate(30%, 30%) scale(1.2); opacity: 0.7; }
+    }
+
+    .specs-content-column {
+      width: 100%;
+    }
+    .specs-list {
+      list-style: none;
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
     .specs-list li {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      padding: 16px 0;
-      border-bottom: 1px solid rgba(240,237,232,0.06);
-      gap: 40px;
-      background: rgba(6,6,6,0.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 16px 20px;
-      margin-bottom: 2px;
-      border: 1px solid rgba(240,237,232,0.06);
+      align-items: center;
+      background: rgba(10, 10, 10, 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 12px 18px;
+      border: 1px solid rgba(240, 237, 232, 0.05);
+      border-radius: 2px;
+      transition: background 0.3s, border-color 0.3s, transform 0.3s;
     }
-    .spec-name { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); }
-    .spec-val { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); }
+    .specs-list li:hover {
+      background: rgba(200, 169, 110, 0.04);
+      border-color: rgba(200, 169, 110, 0.25);
+      transform: translateX(4px);
+    }
+    .spec-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .spec-icon {
+      width: 14px;
+      height: 14px;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+    .spec-name {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+    .spec-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+    }
 
     /* FEATURES */
     #section-features { align-items: flex-end; min-height: 100vh; }
     .features-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 2px;
-      max-width: 520px;
-      margin-top: 40px;
+      gap: 16px;
+      max-width: 600px;
+      margin-top: 32px;
     }
     .feature-item {
-      background: rgba(6,6,6,0.72);
-      border: 1px solid rgba(240,237,232,0.06);
-      padding: 28px 24px;
-      backdrop-filter: blur(6px);
+      position: relative;
+      background: rgba(10, 10, 10, 0.65);
+      border: 1px solid rgba(240, 237, 232, 0.05);
+      padding: 32px 28px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: border-color 0.3s, transform 0.3s;
+      overflow: hidden;
+      border-radius: 4px;
     }
-    .feature-num { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 12px; }
-    .feature-name { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
-    .feature-desc { font-size: 11px; line-height: 1.7; color: rgba(240,237,232,0.45); }
+    .feature-item::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(
+        250px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+        rgba(200, 169, 110, 0.12),
+        transparent 80%
+      );
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-item:hover::before {
+      opacity: 1;
+    }
+    .feature-item:hover {
+      border-color: rgba(200, 169, 110, 0.4);
+      transform: translateY(-4px);
+    }
+    .feature-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .feature-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--accent);
+    }
+    .feature-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      opacity: 0.6;
+    }
+    .feature-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      color: var(--white);
+    }
+    .feature-desc {
+      font-size: 11px;
+      line-height: 1.7;
+      color: rgba(240, 237, 232, 0.5);
+    }
 
     /* QUOTE */
     #section-quote { align-items: center; justify-content: center; text-align: center; flex-direction: column; }
-    .quote-mark { font-family: 'Barlow Condensed', sans-serif; font-size: 120px; line-height: 0.6; color: var(--accent); opacity: 0.3; margin-bottom: 16px; }
-    .quote-text { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(28px, 4vw, 52px); font-weight: 700; text-transform: uppercase; line-height: 1.1; max-width: 800px; margin: 0 auto 32px; }
-    .quote-attr { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); }
+    .quote-card {
+      background: rgba(10, 10, 10, 0.45);
+      border: 1px solid rgba(240, 237, 232, 0.05);
+      padding: 60px 40px;
+      border-radius: 8px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      max-width: 860px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .quote-icon-lucide {
+      width: 32px;
+      height: 32px;
+      color: var(--accent);
+      opacity: 0.25;
+      margin-bottom: 24px;
+    }
+    .quote-text {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(26px, 3.5vw, 44px);
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1.15;
+      color: var(--white);
+      margin-bottom: 24px;
+    }
+    .quote-attr {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
     .quote-attr strong { color: var(--accent); font-weight: 500; }
 
     /* CTA */
@@ -432,9 +947,256 @@
     .cta-headline { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: clamp(60px, 12vw, 160px); line-height: 0.88; text-transform: uppercase; margin-bottom: 48px; }
     .cta-headline .stroke { -webkit-text-stroke: 1px var(--white); color: transparent; }
     .cta-bottom { display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid rgba(240,237,232,0.1); padding-top: 32px; }
-    .cta-btn { display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--black); text-decoration: none; padding: 18px 40px; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; transition: transform 0.3s, background 0.3s; pointer-events: all; }
+    
+    .cta-btn { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 16px; 
+      background: var(--accent); 
+      color: var(--black); 
+      text-decoration: none; 
+      padding: 18px 40px; 
+      font-size: 12px; 
+      font-weight: 600; 
+      letter-spacing: 0.15em; 
+      text-transform: uppercase; 
+      transition: transform 0.3s, background 0.3s; 
+      pointer-events: all; 
+    }
     .cta-btn:hover { background: var(--white); transform: translateY(-2px); }
+    
     .footer-copy { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(240,237,232,0.3); text-align: right; line-height: 2; }
+
+    /* ENQUIRY MODAL */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(6, 6, 6, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 3000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-container {
+      background: rgba(10, 10, 10, 0.95);
+      border: 1px solid rgba(240, 237, 232, 0.08);
+      border-radius: 6px;
+      width: 100%;
+      max-width: 480px;
+      padding: 40px;
+      position: relative;
+      transform: translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+    }
+    .modal-overlay.active .modal-container {
+      transform: translateY(0);
+    }
+    .modal-close {
+      position: absolute;
+      top: 24px; right: 24px;
+      background: none;
+      border: none;
+      color: var(--white);
+      opacity: 0.5;
+      cursor: pointer;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+    .modal-close:hover {
+      opacity: 1;
+      color: var(--accent);
+    }
+    .modal-header {
+      margin-bottom: 28px;
+    }
+    .modal-tag {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      color: var(--accent);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    .modal-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      text-transform: uppercase;
+      line-height: 1.1;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .modal-subtitle {
+      font-size: 11px;
+      color: var(--gray);
+      line-height: 1.5;
+    }
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--gray);
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: rgba(240, 237, 232, 0.03);
+      border: 1px solid rgba(240, 237, 232, 0.1);
+      border-radius: 2px;
+      padding: 10px 14px;
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(240, 237, 232, 0.06);
+    }
+    .form-group option {
+      background: #0a0a0a;
+      color: var(--white);
+    }
+    .form-submit-btn {
+      margin-top: 12px;
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      padding: 14px 28px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .form-submit-btn:hover {
+      background: var(--white);
+    }
+    .form-submit-btn:active {
+      transform: scale(0.98);
+    }
+    .form-submit-btn:disabled {
+      background: var(--gray);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    /* SUCCESS STATE */
+    .modal-success-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 0;
+    }
+    .modal-success-screen.active {
+      display: flex;
+      animation: fadeIn 0.4s ease both;
+    }
+    .success-icon-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(200, 169, 110, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .success-icon {
+      width: 32px;
+      height: 32px;
+      color: var(--accent);
+    }
+    .modal-success-screen h4 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .modal-success-screen p {
+      font-family: monospace;
+      font-size: 8px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 20px;
+    }
+    .success-desc {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      color: var(--gray) !important;
+      line-height: 1.6 !important;
+      letter-spacing: normal !important;
+      margin-bottom: 30px !important;
+      max-width: 320px;
+    }
+    .success-btn-close {
+      background: none;
+      border: 1px solid rgba(240, 237, 232, 0.3);
+      color: var(--white);
+      padding: 12px 24px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .success-btn-close:hover {
+      background: var(--white);
+      color: var(--black);
+      border-color: var(--white);
+    }
+
+    /* RESPONSIVE LAYOUT adjustments */
+    @media (max-width: 991px) {
+      .specs-grid-layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .specs-visual-column {
+        order: 2;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .specs-content-column {
+        order: 1;
+      }
+    }
 
     @media (max-width: 768px) {
       .section {
@@ -462,15 +1224,25 @@
         max-width: 100%;
       }
       .stat-row {
-        margin-top: 20px;
-        padding-top: 20px;
-        gap: 20px;
-        justify-content: space-between;
+        margin-top: 24px;
+        padding-top: 24px;
+        width: 100%;
+      }
+      .stat {
+        padding: 12px 16px;
       }
       .stat-val {
-        font-size: 28px;
+        font-size: 22px;
       }
-      .specs-content {
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        width: 100%;
+      }
+      .feature-item {
+        padding: 24px 20px;
+      }
+      .specs-content-column {
         width: 100%;
         text-align: left !important;
       }
@@ -483,16 +1255,252 @@
       .spec-val {
         font-size: 18px;
       }
+      .quote-card {
+        padding: 40px 24px;
+      }
+    }
+
+    /* SOUND TOGGLE */
+    .sound-toggle {
+      position: fixed;
+      bottom: 40px;
+      right: 48px;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.5);
+      border: 1px solid rgba(240, 237, 232, 0.1);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.3s, background 0.3s;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--gray);
+    }
+    .sound-toggle:hover {
+      border-color: rgba(200, 169, 110, 0.4);
+      color: var(--accent);
+    }
+    .sound-toggle.active {
+      border-color: rgba(200, 169, 110, 0.4);
+      color: var(--accent);
+    }
+    .sound-toggle svg {
+      width: 16px;
+      height: 16px;
+    }
+    .sound-toggle .sound-off { display: block; }
+    .sound-toggle .sound-on { display: none; }
+    .sound-toggle.active .sound-off { display: none; }
+    .sound-toggle.active .sound-on { display: block; }
+    @media (max-width: 768px) {
+      .sound-toggle { bottom: 20px; right: 24px; width: 36px; height: 36px; }
+    }
+
+    /* SECTION PARALLAX */
+    .section[data-parallax] {
+      will-change: transform;
+    }
+
+    /* HORIZONTAL GALLERY */
+    .gallery-section {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 48px;
+      position: relative;
+      z-index: 10;
+      overflow: hidden;
+    }
+    .gallery-header {
+      margin-bottom: 40px;
+    }
+    .gallery-track-wrapper {
+      overflow: hidden;
+      position: relative;
+    }
+    .gallery-track {
+      display: flex;
+      gap: 24px;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: grab;
+    }
+    .gallery-track:active { cursor: grabbing; }
+    .gallery-card {
+      flex: 0 0 420px;
+      height: 320px;
+      background: rgba(10, 10, 10, 0.6);
+      border: 1px solid rgba(240, 237, 232, 0.06);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .gallery-card:hover {
+      border-color: rgba(200, 169, 110, 0.3);
+      transform: translateY(-4px);
+    }
+    .gallery-card-visual {
+      width: 100%;
+      height: 200px;
+      background-color: rgba(200, 169, 110, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+    .gallery-card-visual::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 60%;
+      background: linear-gradient(to top, rgba(10, 10, 10, 0.9), transparent);
+      pointer-events: none;
+    }
+    .gallery-card-info {
+      padding: 24px;
+    }
+    .gallery-card-tag {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .gallery-card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .gallery-card-desc {
+      font-size: 11px;
+      line-height: 1.6;
+      color: rgba(240, 237, 232, 0.45);
+    }
+    .gallery-nav {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .gallery-nav-btn {
+      width: 44px;
+      height: 44px;
+      background: rgba(10, 10, 10, 0.5);
+      border: 1px solid rgba(240, 237, 232, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--white);
+      transition: border-color 0.3s, background 0.3s, color 0.3s;
+    }
+    .gallery-nav-btn:hover {
+      border-color: var(--accent);
+      background: rgba(200, 169, 110, 0.1);
+      color: var(--accent);
+    }
+    .gallery-nav-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    .gallery-progress {
+      display: flex;
+      gap: 6px;
+      margin-left: 16px;
+      align-items: center;
+    }
+    .gallery-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(240, 237, 232, 0.15);
+      transition: background 0.3s, transform 0.3s;
+    }
+    .gallery-dot.active {
+      background: var(--accent);
+      transform: scale(1.3);
+    }
+    @media (max-width: 768px) {
+      .gallery-section { padding: 0 24px; }
+      .gallery-card { flex: 0 0 300px; height: 280px; }
+      .gallery-card-visual { height: 160px; }
+    }
+
+    /* ENTRY ANIMATIONS (post-loader) */
+    .entry-hidden {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    .entry-reveal {
+      animation: entryReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes entryReveal {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
-<body>
+<body class="loading-active">
 
+  <!-- HUD SCANLINES -->
+  <div class="hud-overlay-lines"></div>
+  <div class="hud-scanline"></div>
+
+  <!-- SOUND TOGGLE -->
+  <button class="sound-toggle" id="sound-toggle" aria-label="Toggle scroll sound">
+    <svg class="sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <line x1="23" y1="9" x2="17" y2="15"></line>
+      <line x1="17" y1="9" x2="23" y2="15"></line>
+    </svg>
+    <svg class="sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    </svg>
+  </button>
+
+  <!-- CUSTOM CURSOR -->
+  <div id="custom-cursor" class="custom-cursor"></div>
+  <div id="custom-cursor-dot" class="custom-cursor-dot"></div>
+
+  <!-- PROGRESS BAR -->
   <div class="scroll-progress" id="progress-bar"></div>
 
-  <!-- LOADER -->
+  <!-- HUD DIAGNOSTIC BOOT LOADER -->
   <div id="loader">
-    <div class="loader-spinner"></div>
+    <div class="loader-content">
+      <div class="loader-logo">Fortuner / Archive</div>
+      <div class="loader-hud-container">
+        <svg class="loader-circle-svg" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" class="circle-bg" />
+          <circle cx="50" cy="50" r="45" class="circle-progress" id="loader-progress-circle" />
+        </svg>
+        <div class="loader-percentage" id="loader-pct">00%</div>
+      </div>
+      <div class="loader-status" id="loader-status">INITIALIZING COCKPIT DATA...</div>
+      <div class="loader-terminal" id="loader-terminal">
+        <div>[SYS] ESTABLISHING CORE SENSORS...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERTICAL DOT PAGE NAV -->
+  <div class="dot-nav" id="dot-nav">
+    <div class="dot-nav-item active" data-section="section-hero"><span>00 — Hero</span></div>
+    <div class="dot-nav-item" data-section="section-overview"><span>01 — Overview</span></div>
+    <div class="dot-nav-item" data-section="section-specs"><span>02 — Specs</span></div>
+    <div class="dot-nav-item" data-section="section-features"><span>03 — Details</span></div>
+    <div class="dot-nav-item" data-section="section-quote"><span>04 — Trail</span></div>
+    <div class="dot-nav-item" data-section="section-cta"><span>05 — Enquiry</span></div>
   </div>
 
   <!-- FRAME SEQUENCE CANVAS -->
@@ -510,7 +1518,7 @@
       <a href="#" data-nav-section="section-specs" onclick="scrollToSection('section-specs');return false;">Specs</a>
       <a href="#" data-nav-section="section-features" onclick="scrollToSection('section-features');return false;">Design</a>
       <a href="#" data-nav-section="section-quote" onclick="scrollToSection('section-quote');return false;">Trail</a>
-      <a href="#" class="nav-cta" data-nav-section="section-cta" onclick="scrollToSection('section-cta');return false;">Enquire</a>
+      <a href="#" class="nav-cta">Enquire</a>
     </div>
   </nav>
 
@@ -535,7 +1543,7 @@
       </div>
     </section>
 
-    <section class="section" id="section-overview">
+    <section class="section" id="section-overview" data-parallax="0.08">
       <div class="overview-content">
         <div class="section-tag">Overview</div>
         <h2 class="section-title">Born to<br>Conquer</h2>
@@ -543,51 +1551,167 @@
           The 2013 Toyota Fortuner — the last of the body-on-frame warriors. A rugged, no-compromise SUV built to outlast and outperform anything on the trail.
         </p>
         <div class="stat-row">
-          <div class="stat"><span class="stat-val">270</span><span class="stat-label">Horsepower</span></div>
-          <div class="stat"><span class="stat-val">7.0s</span><span class="stat-label">0–60 mph</span></div>
-          <div class="stat"><span class="stat-val">5000</span><span class="stat-label">Tow lbs</span></div>
+          <div class="stat">
+            <div class="stat-circle">
+              <svg class="stat-circle-svg" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="36" class="stat-bg" />
+                <circle cx="40" cy="40" r="36" class="stat-progress-circle" />
+              </svg>
+              <div class="stat-icon-wrapper">
+                <i data-lucide="zap"></i>
+              </div>
+            </div>
+            <div class="stat-text">
+              <span class="stat-val" data-target="270">0</span>
+              <span class="stat-label">Horsepower</span>
+            </div>
+          </div>
+          
+          <div class="stat">
+            <div class="stat-circle">
+              <svg class="stat-circle-svg" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="36" class="stat-bg" />
+                <circle cx="40" cy="40" r="36" class="stat-progress-circle" />
+              </svg>
+              <div class="stat-icon-wrapper">
+                <i data-lucide="activity"></i>
+              </div>
+            </div>
+            <div class="stat-text">
+              <span class="stat-val" data-target="7.0">0</span>
+              <span class="stat-label">0–60 mph</span>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-circle">
+              <svg class="stat-circle-svg" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="36" class="stat-bg" />
+                <circle cx="40" cy="40" r="36" class="stat-progress-circle" />
+              </svg>
+              <div class="stat-icon-wrapper">
+                <i data-lucide="anchor"></i>
+              </div>
+            </div>
+            <div class="stat-text">
+              <span class="stat-val" data-target="5000">0</span>
+              <span class="stat-label">Tow lbs</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="section-specs">
-      <div class="specs-content">
-        <div class="section-tag" style="justify-content: flex-end;">Technical</div>
-        <h2 class="section-title">Specs &<br>Numbers</h2>
-        <ul class="specs-list">
-          <li><span class="spec-name">Engine</span><span class="spec-val">4.0L V6</span></li>
-          <li><span class="spec-name">Displacement</span><span class="spec-val">3956 cc</span></li>
-          <li><span class="spec-name">Torque</span><span class="spec-val">278 lb-ft</span></li>
-          <li><span class="spec-name">Transmission</span><span class="spec-val">5-Speed Auto</span></li>
-          <li><span class="spec-name">Curb Weight</span><span class="spec-val">4625 lbs</span></li>
-          <li><span class="spec-name">Transfer Case</span><span class="spec-val">Part-Time 4WD</span></li>
-          <li><span class="spec-name">Ground Clearance</span><span class="spec-val">9.6 in</span></li>
-        </ul>
+    <section class="section" id="section-specs" data-parallax="0.12">
+      <div class="specs-grid-layout">
+        <div class="specs-visual-column">
+          <div class="blueprint-frame">
+            <div class="frame-corner top-left"></div>
+            <div class="frame-corner top-right"></div>
+            <div class="frame-corner bottom-left"></div>
+            <div class="frame-corner bottom-right"></div>
+            <div class="specs-blueprint-img" style="width:100%;height:320px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(200,169,110,0.03),rgba(6,6,6,0.8));position:relative;overflow:hidden;">
+              <img src="Blueprint.png" alt="Toyota Fortuner Platform Schematic" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.85) contrast(1.1);mix-blend-mode:screen;opacity:0.7;">
+            </div>
+            <div class="blueprint-hud-overlay">
+              <span class="hud-coordinate">DIM: 4695mm L | 1840mm W | 1850mm H</span>
+              <span class="hud-coordinate">LAT: 35.0522° N</span>
+              <div class="hud-radar-sweep"></div>
+            </div>
+          </div>
+        </div>
+        <div class="specs-content-column">
+          <div class="section-tag">Technical</div>
+          <h2 class="section-title">Specs &<br>Numbers</h2>
+          <ul class="specs-list">
+            <li>
+              <div class="spec-left">
+                <i data-lucide="cog" class="spec-icon"></i>
+                <span class="spec-name">Engine</span>
+              </div>
+              <span class="spec-val">4.0L V6</span>
+            </li>
+            <li>
+              <div class="spec-left">
+                <i data-lucide="droplet" class="spec-icon"></i>
+                <span class="spec-name">Displacement</span>
+              </div>
+              <span class="spec-val">3956 cc</span>
+            </li>
+            <li>
+              <div class="spec-left">
+                <i data-lucide="wrench" class="spec-icon"></i>
+                <span class="spec-name">Torque</span>
+              </div>
+              <span class="spec-val">278 lb-ft</span>
+            </li>
+            <li>
+              <div class="spec-left">
+                <i data-lucide="git-commit" class="spec-icon"></i>
+                <span class="spec-name">Transmission</span>
+              </div>
+              <span class="spec-val">5-Speed Auto</span>
+            </li>
+            <li>
+              <div class="spec-left">
+                <i data-lucide="scale" class="spec-icon"></i>
+                <span class="spec-name">Curb Weight</span>
+              </div>
+              <span class="spec-val">4625 lbs</span>
+            </li>
+            <li>
+              <div class="spec-left">
+                <i data-lucide="shield" class="spec-icon"></i>
+                <span class="spec-name">Transfer Case</span>
+              </div>
+              <span class="spec-val">Part-Time 4WD</span>
+            </li>
+            <li>
+              <div class="spec-left">
+                <i data-lucide="mountain" class="spec-icon"></i>
+                <span class="spec-name">Ground Clearance</span>
+              </div>
+              <span class="spec-val">9.6 in</span>
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
 
-    <section class="section" id="section-features">
+    <section class="section" id="section-features" data-parallax="0.1">
       <div>
         <div class="section-tag">Design</div>
         <h2 class="section-title">Iconic<br>Details</h2>
         <div class="features-grid">
           <div class="feature-item">
-            <div class="feature-num">01</div>
+            <div class="feature-header">
+              <div class="feature-num">01</div>
+              <i data-lucide="shield-alert" class="feature-icon"></i>
+            </div>
             <div class="feature-name">Trail Ready</div>
             <div class="feature-desc">Body-on-frame construction with skid plates and underbody protection built for the roughest terrain.</div>
           </div>
           <div class="feature-item">
-            <div class="feature-num">02</div>
+            <div class="feature-header">
+              <div class="feature-num">02</div>
+              <i data-lucide="navigation" class="feature-icon"></i>
+            </div>
             <div class="feature-name">Crawl Control</div>
             <div class="feature-desc">Low-speed cruise control for steep descents. Set it and let the truck do the work.</div>
           </div>
           <div class="feature-item">
-            <div class="feature-num">03</div>
+            <div class="feature-header">
+              <div class="feature-num">03</div>
+              <i data-lucide="globe" class="feature-icon"></i>
+            </div>
             <div class="feature-name">Multi-Terrain</div>
             <div class="feature-desc">Selectable traction modes for mud, sand, rock, and snow. One dial adapts the whole drivetrain.</div>
           </div>
           <div class="feature-item">
-            <div class="feature-num">04</div>
+            <div class="feature-header">
+              <div class="feature-num">04</div>
+              <i data-lucide="link-2" class="feature-icon"></i>
+            </div>
             <div class="feature-name">KDSS</div>
             <div class="feature-desc">Kinetic Dynamic Suspension System disconnects sway bars for max articulation on uneven ground.</div>
           </div>
@@ -595,13 +1719,77 @@
       </div>
     </section>
 
-    <section class="section" id="section-quote">
-      <div class="quote-mark">"</div>
-      <p class="quote-text">The mountain doesn't care about your comfort — but the Fortuner does</p>
-      <p class="quote-attr"><strong>Trail Boss Archive</strong> — Editorial, 2013</p>
+    <!-- HORIZONTAL GALLERY -->
+    <section class="gallery-section" id="section-gallery">
+      <div class="gallery-header">
+        <div class="section-tag">Archive</div>
+        <h2 class="section-title">Detail<br>Shots</h2>
+      </div>
+      <div class="gallery-track-wrapper">
+        <div class="gallery-track" id="gallery-track">
+          <div class="gallery-card">
+            <div class="gallery-card-visual" style="background-image:url('Interior.png');background-size:cover;background-position:center;">
+            </div>
+            <div class="gallery-card-info">
+              <div class="gallery-card-tag">Interior</div>
+              <div class="gallery-card-title">Cockpit Command</div>
+              <div class="gallery-card-desc">Leather-wrapped steering with integrated controls. Driver-focused ergonomics.</div>
+            </div>
+          </div>
+          <div class="gallery-card">
+            <div class="gallery-card-visual" style="background-image:url('engine.png');background-size:cover;background-position:center;">
+            </div>
+            <div class="gallery-card-info">
+              <div class="gallery-card-tag">Engine</div>
+              <div class="gallery-card-title">V6 Heart</div>
+              <div class="gallery-card-desc">3956cc of naturally aspirated power. 270hp delivered to all four corners.</div>
+            </div>
+          </div>
+          <div class="gallery-card">
+            <div class="gallery-card-visual" style="background-image:url('wheel.jpeg');background-size:cover;background-position:center;">
+            </div>
+            <div class="gallery-card-info">
+              <div class="gallery-card-tag">Wheel</div>
+              <div class="gallery-card-title">17-Inch Alloy</div>
+              <div class="gallery-card-desc">Six-spoke forged alloys wrapped in all-terrain rubber. Ready for anything.</div>
+            </div>
+          </div>
+          <div class="gallery-card">
+            <div class="gallery-card-visual" style="background-image:url('suspension.png');background-size:cover;background-position:center;">
+            </div>
+            <div class="gallery-card-info">
+              <div class="gallery-card-tag">Suspension</div>
+              <div class="gallery-card-title">KDSS System</div>
+              <div class="gallery-card-desc">Kinetic Dynamic Suspension. Disconnects sway bars for max articulation off-road.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="gallery-nav">
+        <button class="gallery-nav-btn" id="gallery-prev" aria-label="Previous">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="gallery-nav-btn" id="gallery-next" aria-label="Next">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <div class="gallery-progress" id="gallery-progress">
+          <div class="gallery-dot active"></div>
+          <div class="gallery-dot"></div>
+          <div class="gallery-dot"></div>
+          <div class="gallery-dot"></div>
+        </div>
+      </div>
     </section>
 
-    <section class="section" id="section-cta">
+    <section class="section" id="section-quote" data-parallax="0.06">
+      <div class="quote-card">
+        <i data-lucide="quote" class="quote-icon-lucide"></i>
+        <p class="quote-text">The mountain doesn't care about your comfort — but the Fortuner does</p>
+        <p class="quote-attr"><strong>Trail Boss Archive</strong> — Editorial, 2013</p>
+      </div>
+    </section>
+
+    <section class="section" id="section-cta" data-parallax="0.05">
       <div class="cta-content">
         <p class="cta-label">Own the Trail</p>
         <h2 class="cta-headline">
@@ -611,9 +1799,7 @@
         <div class="cta-bottom">
           <a href="#" class="cta-btn">
             Begin Enquiry
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
           </a>
           <div class="footer-copy">
             <p>Trail Boss Archive</p>
@@ -625,8 +1811,60 @@
 
   </div>
 
+  <!-- ENQUIRY MODAL -->
+  <div class="modal-overlay" id="enquiry-modal">
+    <div class="modal-container">
+      <button class="modal-close" id="modal-close" aria-label="Close enquiry">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-header">
+        <div class="modal-tag">TRAIL BOSS ARCHIVE</div>
+        <h3 class="modal-title">Acquire Specimen</h3>
+        <p class="modal-subtitle">Submit your request to configure your 2013 Toyota Fortuner.</p>
+      </div>
+      <form class="modal-form" id="enquiry-form">
+        <div class="form-group">
+          <label for="form-name">Name</label>
+          <input type="text" id="form-name" placeholder="Alexander Drake" required>
+        </div>
+        <div class="form-group">
+          <label for="form-email">Email Address</label>
+          <input type="email" id="form-email" placeholder="alex@trailboss.com" required>
+        </div>
+        <div class="form-group">
+          <label for="form-trim">Select Configuration</label>
+          <select id="form-trim" required>
+            <option value="" disabled selected>Select trim specification</option>
+            <option value="v6-trail">4.0L V6 Trail Boss Edition (Part-Time 4WD)</option>
+            <option value="v6-premium">4.0L V6 Premium Archive (Full-Time AWD)</option>
+            <option value="custom-spec">Military-Spec Overland Custom Build</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="form-notes">Operating Environment / Notes</label>
+          <textarea id="form-notes" rows="3" placeholder="Describe the terrain or destination details..."></textarea>
+        </div>
+        <button type="submit" class="form-submit-btn">
+          <span>Submit Request</span>
+          <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+        </button>
+      </form>
+      <div class="modal-success-screen" id="modal-success">
+        <div class="success-icon-wrapper">
+          <i data-lucide="check-circle" class="success-icon"></i>
+        </div>
+        <h4>Request Transmitted</h4>
+        <p>SYSTEM STATUS: SECURE ROUTING IN PROGRESS</p>
+        <p class="success-desc">An agent from the Trail Archive Division will contact you within 24 operational hours to verify configuration metrics.</p>
+        <button class="success-btn-close" id="success-close-btn">Return to Archive</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
   <script>
+    lucide.createIcons();
+
     const TOTAL_FRAMES = 184;
     const canvas = document.getElementById('frame-canvas');
     const ctx = canvas.getContext('2d');
@@ -651,6 +1889,54 @@
     }
     window.addEventListener('resize', resizeCanvas);
 
+    // Dynamic preloader diagnostic logs
+    const systemLogs = [
+      "ESTABLISHING SYSTEM INTERFACE...",
+      "LOADING SENSORY CINEMATIC NODES...",
+      "BUFFERING CHASSIS FRAME BUFFER...",
+      "DIAGNOSTIC CHECK: V6 ENGINE... NOMINAL",
+      "SYNCHRONIZING ROTATION SCROLLER...",
+      "KDSS STABILITY MATRIX ONLINE...",
+      "READY FOR TRAIL. SYSTEM NOMINAL."
+    ];
+
+    function updatePreloader(count) {
+      const pct = Math.min(Math.round((count / TOTAL_FRAMES) * 100), 100);
+      const loaderPct = document.getElementById('loader-pct');
+      const loaderCircle = document.getElementById('loader-progress-circle');
+      const loaderStatus = document.getElementById('loader-status');
+      const loaderTerminal = document.getElementById('loader-terminal');
+      
+      if (loaderPct) loaderPct.textContent = String(pct).padStart(2, '0') + '%';
+      
+      if (loaderCircle) {
+        const radius = 45;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (pct / 100) * circumference;
+        loaderCircle.style.strokeDashoffset = offset;
+      }
+      
+      const logIdx = Math.floor((pct / 100) * systemLogs.length);
+      if (systemLogs[logIdx] && loaderStatus && loaderStatus.textContent !== systemLogs[logIdx]) {
+        loaderStatus.textContent = systemLogs[logIdx];
+        const logLine = document.createElement('div');
+        logLine.textContent = `[OK] ${systemLogs[logIdx]}`;
+        loaderTerminal.appendChild(logLine);
+        loaderTerminal.scrollTop = loaderTerminal.scrollHeight;
+      }
+    }
+
+    function hidePreloader() {
+      setTimeout(() => {
+        const loader = document.getElementById('loader');
+        if (loader) {
+          loader.classList.add('fade-out');
+          document.body.classList.remove('loading-active');
+          initStatsAnimation();
+        }
+      }, 600);
+    }
+
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
       const num = String(i).padStart(4, '0');
@@ -658,9 +1944,10 @@
       frames.push(img);
       img.onload = () => {
         loadedCount++;
+        updatePreloader(loadedCount);
         if (loadedCount === 1) resizeCanvas();
         if (loadedCount === 45) {
-          document.getElementById('loader').classList.add('fade-out');
+          hidePreloader();
         }
       };
     }
@@ -756,6 +2043,14 @@
       document.getElementById('hamburger').classList.toggle('open');
     });
 
+    const dotItems = document.querySelectorAll('.dot-nav-item');
+    dotItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const sectionId = item.dataset.section;
+        scrollToSection(sectionId);
+      });
+    });
+
     function updateNavHighlight() {
       const mid = window.innerHeight * 0.45;
       let current = sectionIds[0];
@@ -764,9 +2059,304 @@
         if (el && el.getBoundingClientRect().top <= mid) current = id;
       }
       navLinks.forEach(a => a.classList.toggle('nav-active', a.dataset.navSection === current));
+      
+      dotItems.forEach(item => {
+        const isCurrent = item.dataset.section === current;
+        item.classList.toggle('active', isCurrent);
+      });
     }
 
     updateNavHighlight();
+
+    // CUSTOM CURSOR
+    const cursor = document.getElementById('custom-cursor');
+    const cursorDot = document.getElementById('custom-cursor-dot');
+    
+    if (window.matchMedia('(hover: hover)').matches) {
+      document.addEventListener('mousemove', (e) => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+        
+        cursorDot.style.left = e.clientX + 'px';
+        cursorDot.style.top = e.clientY + 'px';
+      });
+
+      document.querySelectorAll('a, button, .nav-logo, .feature-item, .specs-list li, .stat, .dot-nav-item').forEach(item => {
+        item.addEventListener('mouseenter', () => {
+          cursor.classList.add('hovered');
+        });
+        item.addEventListener('mouseleave', () => {
+          cursor.classList.remove('hovered');
+        });
+      });
+    } else {
+      cursor.style.display = 'none';
+      cursorDot.style.display = 'none';
+    }
+
+    // STATS COUNT-UP ANIMATION
+    function initStatsAnimation() {
+      const stats = document.querySelectorAll('.stat');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const stat = entry.target;
+            const valEl = stat.querySelector('.stat-val');
+            const target = parseFloat(valEl.dataset.target);
+            const isFloat = valEl.dataset.target.includes('.');
+            
+            let start = 0;
+            const duration = 1500;
+            const startTime = performance.now();
+            
+            function updateCounter(currentTime) {
+              const elapsed = currentTime - startTime;
+              const progress = Math.min(elapsed / duration, 1);
+              const easeProgress = progress * (2 - progress);
+              
+              const currentVal = easeProgress * target;
+              if (isFloat) {
+                valEl.textContent = currentVal.toFixed(1) + 's';
+              } else {
+                valEl.textContent = Math.round(currentVal).toLocaleString();
+              }
+              
+              if (progress < 1) {
+                requestAnimationFrame(updateCounter);
+              }
+            }
+            requestAnimationFrame(updateCounter);
+
+            const circle = stat.querySelector('.stat-progress-circle');
+            if (circle) {
+              const radius = 36;
+              const circumference = 2 * Math.PI * radius;
+              let percent = 0.7; 
+              if (stat.querySelector('[data-lucide="zap"]')) percent = 0.75; 
+              if (stat.querySelector('[data-lucide="activity"]')) percent = 0.85; 
+              if (stat.querySelector('[data-lucide="anchor"]')) percent = 0.90; 
+              
+              circle.style.strokeDasharray = circumference;
+              circle.style.strokeDashoffset = circumference;
+              
+              setTimeout(() => {
+                circle.style.transition = 'stroke-dashoffset 1.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                circle.style.strokeDashoffset = circumference - (percent * circumference);
+              }, 50);
+            }
+            observer.unobserve(stat);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      stats.forEach(stat => observer.observe(stat));
+    }
+
+    // FEATURE CARD MOUSE TRAIL GLOW
+    document.querySelectorAll('.feature-item').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+
+    // ENQUIRY MODAL INTERACTION
+    const modal = document.getElementById('enquiry-modal');
+    const enquireBtns = document.querySelectorAll('.nav-cta, .cta-btn');
+    const modalClose = document.getElementById('modal-close');
+    const enquiryForm = document.getElementById('enquiry-form');
+    const modalSuccess = document.getElementById('modal-success');
+    const successCloseBtn = document.getElementById('success-close-btn');
+
+    enquireBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.classList.add('active');
+        lenis.stop();
+      });
+    });
+
+    function closeModal() {
+      modal.classList.remove('active');
+      lenis.start();
+      setTimeout(() => {
+        enquiryForm.style.display = 'flex';
+        modalSuccess.classList.remove('active');
+        enquiryForm.reset();
+      }, 500);
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    successCloseBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    enquiryForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const submitBtn = enquiryForm.querySelector('.form-submit-btn');
+      const submitText = submitBtn.querySelector('span');
+      submitText.textContent = "TRANSMITTING SPEC...";
+      submitBtn.disabled = true;
+      
+      setTimeout(() => {
+        enquiryForm.style.display = 'none';
+        modalSuccess.classList.add('active');
+        submitText.textContent = "Submit Request";
+        submitBtn.disabled = false;
+      }, 1500);
+    });
+
+    // ── SECTION PARALLAX ─────────────────────────────────────
+    const parallaxSections = document.querySelectorAll('.section[data-parallax]');
+    function updateParallax() {
+      parallaxSections.forEach(section => {
+        const speed = parseFloat(section.dataset.parallax) || 0.15;
+        const rect = section.getBoundingClientRect();
+        const offset = rect.top * speed;
+        section.style.transform = 'translateY(' + offset + 'px)';
+      });
+    }
+
+    // ── ENTRY ANIMATION ──────────────────────────────────────
+    function triggerEntryAnimation() {
+      const navLogo = document.querySelector('.nav-logo');
+      const navRight = document.querySelector('.nav-right');
+      const heroLines = document.querySelectorAll('.hero-headline .line');
+      const heroSub = document.querySelector('.hero-sub');
+      const scrollInd = document.querySelector('.scroll-indicator');
+
+      [navLogo, navRight, heroSub, scrollInd].forEach(el => {
+        if (el) { el.classList.add('entry-hidden'); el.style.animation = 'none'; }
+      });
+      heroLines.forEach(l => { l.classList.add('entry-hidden'); l.style.animation = 'none'; });
+
+      setTimeout(() => { if (navLogo) { navLogo.classList.remove('entry-hidden'); navLogo.classList.add('entry-reveal'); } }, 100);
+      setTimeout(() => { if (navRight && window.innerWidth > 768) { navRight.classList.remove('entry-hidden'); navRight.classList.add('entry-reveal'); } }, 250);
+      setTimeout(() => { if (heroLines[0]) { heroLines[0].classList.remove('entry-hidden'); heroLines[0].classList.add('entry-reveal'); } }, 400);
+      setTimeout(() => { if (heroLines[1]) { heroLines[1].classList.remove('entry-hidden'); heroLines[1].classList.add('entry-reveal'); } }, 550);
+      setTimeout(() => { if (heroSub) { heroSub.classList.remove('entry-hidden'); heroSub.classList.add('entry-reveal'); } }, 700);
+      setTimeout(() => { if (scrollInd) { scrollInd.classList.remove('entry-hidden'); scrollInd.classList.add('entry-reveal'); } }, 900);
+    }
+
+    // ── SOUND TOGGLE ─────────────────────────────────────────
+    const soundToggle = document.getElementById('sound-toggle');
+    let soundEnabled = false;
+    let audioCtx = null;
+
+    function createScrollSound() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(80 + Math.random() * 40, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.08);
+    }
+
+    if (soundToggle) {
+      soundToggle.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        soundToggle.classList.toggle('active', soundEnabled);
+        if (soundEnabled && !audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      });
+    }
+
+    let lastScrollY = 0;
+    let scrollSoundThrottle = 0;
+
+    // ── GALLERY ──────────────────────────────────────────────
+    const galleryTrack = document.getElementById('gallery-track');
+    const galleryPrev = document.getElementById('gallery-prev');
+    const galleryNext = document.getElementById('gallery-next');
+    const galleryDots = document.querySelectorAll('#gallery-progress .gallery-dot');
+    let galleryIndex = 0;
+    const galleryTotal = 4;
+
+    function updateGallery() {
+      if (!galleryTrack) return;
+      const card = galleryTrack.querySelector('.gallery-card');
+      if (!card) return;
+      const cardWidth = card.offsetWidth + 24;
+      galleryTrack.style.transform = 'translateX(-' + (galleryIndex * cardWidth) + 'px)';
+      galleryDots.forEach((d, i) => d.classList.toggle('active', i === galleryIndex));
+    }
+
+    if (galleryPrev) galleryPrev.addEventListener('click', () => { galleryIndex = Math.max(0, galleryIndex - 1); updateGallery(); });
+    if (galleryNext) galleryNext.addEventListener('click', () => { galleryIndex = Math.min(galleryTotal - 1, galleryIndex + 1); updateGallery(); });
+
+    let galleryDragStart = 0;
+    let galleryDragging = false;
+    if (galleryTrack) {
+      galleryTrack.addEventListener('mousedown', (e) => { galleryDragging = true; galleryDragStart = e.clientX; galleryTrack.style.cursor = 'grabbing'; });
+      galleryTrack.addEventListener('mousemove', (e) => { if (!galleryDragging) return; const diff = e.clientX - galleryDragStart; if (Math.abs(diff) > 60) { if (diff < 0) galleryIndex = Math.min(galleryTotal - 1, galleryIndex + 1); else galleryIndex = Math.max(0, galleryIndex - 1); updateGallery(); galleryDragging = false; } });
+      galleryTrack.addEventListener('mouseup', () => { galleryDragging = false; galleryTrack.style.cursor = 'grab'; });
+      galleryTrack.addEventListener('mouseleave', () => { galleryDragging = false; galleryTrack.style.cursor = 'grab'; });
+    }
+
+    // ── KEYBOARD NAVIGATION ──────────────────────────────────
+    let currentSectionIdx = 0;
+    document.addEventListener('keydown', (e) => {
+      if (modal && modal.classList.contains('active')) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        currentSectionIdx = Math.min(sectionIds.length - 1, currentSectionIdx + 1);
+        scrollToSection(sectionIds[currentSectionIdx]);
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        currentSectionIdx = Math.max(0, currentSectionIdx - 1);
+        scrollToSection(sectionIds[currentSectionIdx]);
+      }
+    });
+
+    // ── UPDATE CURRENT SECTION INDEX ON SCROLL ───────────────
+    lenis.on('scroll', () => {
+      const mid = window.innerHeight * 0.45;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sectionIds[i]);
+        if (el && el.getBoundingClientRect().top <= mid) { currentSectionIdx = i; break; }
+      }
+    });
+
+    // ── UNIFIED SCROLL HANDLER ───────────────────────────────
+    lenis.on('scroll', (e) => {
+      updateParallax();
+
+      if (soundEnabled && Math.abs(e.scroll - lastScrollY) > 15) {
+        const now = Date.now();
+        if (now - scrollSoundThrottle > 80) {
+          createScrollSound();
+          scrollSoundThrottle = now;
+        }
+        lastScrollY = e.scroll;
+      }
+    });
+
+    // ── INIT ─────────────────────────────────────────────────
+    const origHidePreloader = hidePreloader;
+    hidePreloader = function() {
+      setTimeout(() => {
+        const loader = document.getElementById('loader');
+        if (loader) {
+          loader.classList.add('fade-out');
+          document.body.classList.remove('loading-active');
+          initStatsAnimation();
+          setTimeout(triggerEntryAnimation, 200);
+        }
+      }, 600);
+    };
   </script>
 
 </body>
