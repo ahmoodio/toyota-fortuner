@@ -13,6 +13,12 @@
   <meta name="twitter:title" content="TRAIL BOSS — 2013 Toyota Fortuner">
   <meta name="twitter:description" content="An immersive scroll-driven experience showcasing the 2013 Toyota Fortuner.">
   <meta name="twitter:image" content="frames_tmp/frame_0090.jpg">
+  <link rel="preload" href="frames_mobile/frame_0001.jpg" as="image">
+  <link rel="preload" href="frames_tmp/frame_0001.jpg" as="image">
+  <link rel="preload" href="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" as="script">
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <meta http-equiv="X-DNS-Prefetch-Control" content="on">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Barlow+Condensed:wght@700;800;900&display=swap');
@@ -1558,7 +1564,7 @@
             <div class="frame-corner bottom-left"></div>
             <div class="frame-corner bottom-right"></div>
             <div class="specs-blueprint-img" style="width:100%;height:320px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(200,169,110,0.03),rgba(6,6,6,0.8));position:relative;overflow:hidden;">
-              <img src="Blueprint.png" alt="Toyota Fortuner Platform Schematic" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.85) contrast(1.1);mix-blend-mode:screen;opacity:0.7;">
+              <img src="Blueprint.webp" alt="Toyota Fortuner Platform Schematic" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.85) contrast(1.1);mix-blend-mode:screen;opacity:0.7;">
             </div>
             <div class="blueprint-hud-overlay">
               <span class="hud-coordinate">DIM: 4695mm L | 1840mm W | 1850mm H</span>
@@ -1675,7 +1681,7 @@
       <div class="gallery-track-wrapper">
         <div class="gallery-track" id="gallery-track">
           <div class="gallery-card">
-            <div class="gallery-card-visual" style="background-image:url('Interior.png');background-size:cover;background-position:center;">
+            <div class="gallery-card-visual" style="background-image:url('Interior.webp');background-size:cover;background-position:center;">
             </div>
             <div class="gallery-card-info">
               <div class="gallery-card-tag">Interior</div>
@@ -1684,7 +1690,7 @@
             </div>
           </div>
           <div class="gallery-card">
-            <div class="gallery-card-visual" style="background-image:url('engine.png');background-size:cover;background-position:center;">
+            <div class="gallery-card-visual" style="background-image:url('engine.webp');background-size:cover;background-position:center;">
             </div>
             <div class="gallery-card-info">
               <div class="gallery-card-tag">Engine</div>
@@ -1693,7 +1699,7 @@
             </div>
           </div>
           <div class="gallery-card">
-            <div class="gallery-card-visual" style="background-image:url('wheel.jpeg');background-size:cover;background-position:center;">
+            <div class="gallery-card-visual" style="background-image:url('wheel.webp');background-size:cover;background-position:center;">
             </div>
             <div class="gallery-card-info">
               <div class="gallery-card-tag">Wheel</div>
@@ -1702,7 +1708,7 @@
             </div>
           </div>
           <div class="gallery-card">
-            <div class="gallery-card-visual" style="background-image:url('suspension.png');background-size:cover;background-position:center;">
+            <div class="gallery-card-visual" style="background-image:url('suspension.webp');background-size:cover;background-position:center;">
             </div>
             <div class="gallery-card-info">
               <div class="gallery-card-tag">Suspension</div>
@@ -1810,6 +1816,10 @@
 
   <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
   <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
     lucide.createIcons();
 
     const TOTAL_FRAMES = 184;
