@@ -631,6 +631,7 @@
     const canvas = document.getElementById('frame-canvas');
     const ctx = canvas.getContext('2d');
     const progressBar = document.getElementById('progress-bar');
+    const scrollIndicator = document.querySelector('.scroll-indicator');
     const navLinks = document.querySelectorAll('[data-nav-section]');
     const sectionIds = ['section-hero','section-overview','section-specs','section-features','section-quote','section-cta'];
 
@@ -664,28 +665,9 @@
       };
     }
 
-    function renderFrame(index, forceRedraw = false) {
-      if (index === lastRenderedFrame && !forceRedraw) return;
-
-      const img = frames[index];
-      let activeImg = null;
-
-      if (img && img.complete) {
-        activeImg = img;
-      } else {
-        for (let fallbackIdx = index; fallbackIdx >= 0; fallbackIdx--) {
-          if (frames[fallbackIdx] && frames[fallbackIdx].complete) {
-            activeImg = frames[fallbackIdx];
-            break;
-          }
-        }
-      }
-
-      if (!activeImg) return;
-
+    function drawToCanvas(img) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const imgRatio = activeImg.width / activeImg.height;
+      const imgRatio = img.width / img.height;
       const canvasRatio = canvas.width / canvas.height;
       let cx, cy, cw, ch;
 
@@ -700,9 +682,26 @@
         cx = isMobile ? (canvas.width - cw) * 0.65 : (canvas.width - cw) / 2;
         cy = 0;
       }
+      ctx.drawImage(img, cx, cy, cw, ch);
+    }
 
-      ctx.drawImage(activeImg, cx, cy, cw, ch);
-      lastRenderedFrame = index;
+    function renderFrame(index, forceRedraw = false) {
+      if (index === lastRenderedFrame && !forceRedraw) return;
+
+      const img = frames[index];
+      if (img && img.complete) {
+        drawToCanvas(img);
+        lastRenderedFrame = index;
+        return;
+      }
+
+      for (let i = index; i >= 0; i--) {
+        if (frames[i] && frames[i].complete) {
+          drawToCanvas(frames[i]);
+          lastRenderedFrame = index;
+          return;
+        }
+      }
     }
 
     const lenis = new Lenis({
@@ -728,8 +727,13 @@
       const scrollFrac = Math.min(Math.max(e.scroll / totalHeight, 0), 1);
       progressBar.style.width = (scrollFrac * 100) + '%';
 
-      targetFrame = scrollFrac * (TOTAL_FRAMES - 1);
+      const easedFrac = Math.pow(scrollFrac, 0.95);
+      targetFrame = easedFrac * (TOTAL_FRAMES - 1);
       updateNavHighlight();
+
+      if (scrollIndicator) {
+        scrollIndicator.style.opacity = Math.max(1 - (e.scroll / 150), 0);
+      }
     });
 
     function updateAnimation() {
